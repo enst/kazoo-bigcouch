@@ -5,11 +5,9 @@ RUN yum -y --nogpgcheck localinstall http://repo.2600hz.com/Packages/Kazoo-Bigco
 
 ADD entrypoint.sh /root/
 
-VOLUME ["/srv", "/var/log"]
+VOLUME ["/srv", "/var/log/bigcouch"]
 
 ENTRYPOINT ["/root/entrypoint.sh"]
 
 EXPOSE 5984 5986
-
-
 
