@@ -5,11 +5,9 @@ RUN yum install -y kazoo-bigcouch-R15B
 
 ADD entrypoint.sh /root/
 
-VOLUME ["/srv", "/var/log"]
+VOLUME ["/srv", "/var/log/bigcouch"]
 
 ENTRYPOINT ["/root/entrypoint.sh"]
 
 EXPOSE 5984 5986
-
-
 
