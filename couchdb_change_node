@@ -54,14 +54,11 @@
 
 (defun _http_put (url json)
 	(: lfe_io format '"put ~s~n" (list url))
-	;(: io format '"~p~n" (list json))
 	(let ((j (: jsx encode json)))
 		(: io format '"~s~n" (list j))
-		(: io format '"~p~n" (list
 		(: httpc request 'put
 			(tuple url [] '"application/json" j)
 			[] [])))
-		))
 
 (defun _http_get (url)
 	(: lfe_io format '"get ~s~n" (list url))
