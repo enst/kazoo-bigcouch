@@ -26,13 +26,13 @@
 							(update_by_node (: proplists get_value #"by_node" json))
 								(: proplists delete #"_id" json))))
 			(update_domain (id)
-				(let ((db_url (list url '"/dbs/" (: http_uri encode (: erlang binary_to_list id))))) 
+				(let ((db_url (list url '"/" (: http_uri encode (: erlang binary_to_list id))))) 
 					(http_put db_url
 						(update_node
 							(http_get db_url))))))
 
 			(: lfe_io format '"~s~n~s => ~s~n" (list url old new))
-			(let ((json (http_get (list url "/dbs/_all_docs"))))
+			(let ((json (http_get (list url "/_all_docs"))))
 				(let ((dbs (get_ids json)))
 					(: lists map #'update_domain/1 dbs)))))
 	([_] (usage)))
