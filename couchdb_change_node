@@ -1,0 +1,83 @@
+#! /usr/bin/env lfescript
+;; -*- mode: lfe -*-
+;;! -smp enable -sname factorial -mnesia debug verbose
+
+
+(defun main
+	([(list url old new)]
+		(: inets start)
+		(flet*
+			((replace (string)
+				(: erlang list_to_binary (list (: re replace string old new))))
+			(update_by_node (by_node)
+				(: lists map (match-lambda (((tuple node shards))
+					(tuple (replace node) shards)))
+					by_node))
+			(update_by_range (by_range)
+				(: lists map (match-lambda (((tuple shard nodes))
+					(tuple shard
+						(: lists map (lambda (node)
+							(replace node))
+							nodes))))
+					by_range))
+			(update_node (json)
+				(update_proplist #"by_range"
+					(update_by_range (: proplists get_value #"by_range" json))
+						(update_proplist #"by_node"
+							(update_by_node (: proplists get_value #"by_node" json))
+								(: proplists delete #"_id" json))))
+			(update_domain (id)
+				(let ((db_url (list url '"/dbs/" (: http_uri encode (: erlang binary_to_list id))))) 
+					(http_put db_url
+						(update_node
+							(http_get db_url))))))
+
+			(: lfe_io format '"~s~n~s => ~s~n" (list url old new))
+			(let ((json (http_get (list url "/dbs/_all_docs"))))
+				(let ((dbs (get_ids json)))
+					(: lists map #'update_domain/1 dbs)))))
+	([_] (usage)))
+
+
+(defun update_proplist (key value list)
+	(: lists keyreplace key 1 list (tuple key value)))
+
+(defun http_get (url)
+	(let ((r (_http_get (: lists flatten url))))
+		(: io format "~p~n" (list r))
+		r))
+
+(defun http_put (url json)
+	(let ((r (_http_put (: lists flatten url) json)))
+		(: io format "~p~n" (list r))
+		r))
+
+(defun _http_put (url json)
+	(: lfe_io format '"put ~s~n" (list url))
+	;(: io format '"~p~n" (list json))
+	(let ((j (: jsx encode json)))
+		(: io format '"~s~n" (list j))
+		(: io format '"~p~n" (list
+		(: httpc request 'put
+			(tuple url [] '"application/json" j)
+			[] [])))
+		))
+
+(defun _http_get (url)
+	(: lfe_io format '"get ~s~n" (list url))
+		(let (((tuple 'ok (tuple _, _headers, body))
+	       (: httpc request url)))
+			(: jsx decode (: erlang list_to_binary body))))
+
+(defun get_rows (json)
+	(let (((list _total _offset (tuple #"rows" rows)) json))
+		rows))
+
+(defun get_ids (json)
+	(: lists map 
+		(lambda (r)
+			(: proplists get_value #"id" r))
+		(get_rows json)))
+
+(defun usage ()
+	(: io format '"usage: URL, old and new domain names~n" []))
