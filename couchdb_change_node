@@ -2,7 +2,6 @@
 ;; -*- mode: lfe -*-
 ;;! -smp enable -sname couchdb_change_node -mnesia debug verbose
 
-
 (defun main
 	([(list url old new)]
 		(: inets start)
@@ -44,7 +43,7 @@
 
 (defun http_get (url)
 	(let ((r (_http_get (: lists flatten url))))
-		(: io format "~p~n" (list r))
+		;(: io format "~p~n" (list r))
 		r))
 
 (defun http_put (url json)
