@@ -65,9 +65,8 @@
 	       (: httpc request url)))
 			(: jsx decode (: erlang list_to_binary body))))
 
-(defun get_rows (json)
-	(let (((list _total _offset (tuple #"rows" rows)) json))
-		rows))
+(defun get_rows (((list _total _offset (tuple #"rows" rows)))
+	rows))
 
 (defun get_ids (json)
 	(: lists map 
